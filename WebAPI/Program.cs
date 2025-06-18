@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using Scalar.AspNetCore;
+using WebAPI.Data;
 using WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +25,11 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
     return client.GetDatabase(dbName);
 });
 
-builder.Services.AddSingleton<IStudentService, StudentService>();
+builder.Services.AddDbContext<DatabaseContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Databaseconnection"))
+);
+
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 var app = builder.Build();
 
