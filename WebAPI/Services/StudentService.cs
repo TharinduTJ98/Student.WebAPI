@@ -58,11 +58,15 @@ namespace WebAPI.Services
 
         public async Task<StudentResponseDto> UpdateStudentCourseAsync(UpdateStudentDto updateDto)
         {
+            string newRegistrationNumber = "";
             var student = await _students.Find(s => s.Id == updateDto.StudentId).FirstOrDefaultAsync();
             if (student == null)
                 throw new ArgumentException("Student not found");
+            if(student.CurrentCourse != updateDto.Course)
+            {
+                newRegistrationNumber = await GenerateRegistrationNumberAsync(updateDto.Course);
+            }
 
-            var newRegistrationNumber = await GenerateRegistrationNumberAsync(updateDto.Course);
             var currentYear = DateTime.UtcNow.Year;
 
             foreach (var history in student.RegistrationHistory)
@@ -77,7 +81,7 @@ namespace WebAPI.Services
                 LastName = updateDto.LastName,
                 Email = updateDto.Email,
                 Phone = updateDto.Phone,
-                CurrentRegistrationNumber = newRegistrationNumber,
+                CurrentRegistrationNumber = student.CurrentCourse != updateDto.Course ? newRegistrationNumber : student.CurrentRegistrationNumber,
                 CurrentCourse = updateDto.Course,
                 UpdatedAt = DateTime.UtcNow,
                 RegistrationHistory = new List<RegistrationHistory>
